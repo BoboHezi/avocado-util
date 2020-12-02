@@ -1,0 +1,3 @@
+include ':avocado-util'
+include ':app'
+rootProject.name = "avocado-util"
