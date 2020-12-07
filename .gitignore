@@ -85,3 +85,7 @@ lint/tmp/
 # lint/reports/
 
 .idea
+app/src/androidTest/
+app/src/test/
+avocado-util/src/androidTest/
+avocado-util/src/test/

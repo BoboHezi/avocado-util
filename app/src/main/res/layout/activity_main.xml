@@ -22,6 +22,15 @@
 
     <include layout="@layout/content_main" />
 
+    <eli.avocado.widget.CircleImageView
+        android:layout_width="100dp"
+        android:layout_height="100dp"
+        android:layout_gravity="center"
+        android:src="@mipmap/thumbnil"
+        app:radius="50dp"
+        app:borderColor="#f00"
+        app:borderWidth="2px"/>
+
     <com.google.android.material.floatingactionbutton.FloatingActionButton
         android:id="@+id/fab"
         android:layout_width="wrap_content"
