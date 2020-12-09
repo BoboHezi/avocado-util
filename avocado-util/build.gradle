@@ -45,7 +45,7 @@ publish {
     userOrg = 'avocado'
     groupId = 'eli-avocado'
     artifactId = 'util'
-    publishVersion = '0.0.1'
+    publishVersion = '0.0.2'
     desc = 'android util & widghet libray, created by avocado'
     website = 'https://github.com/BoboHezi/avocado-util'
 }
