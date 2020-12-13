@@ -43,9 +43,9 @@ buildscript {
 
 publish {
     userOrg = 'avocado'
-    groupId = 'eli-avocado'
-    artifactId = 'util'
-    publishVersion = '0.0.2'
+    groupId = 'com.github.eli'
+    artifactId = 'AvocadoUtils'
+    publishVersion = '0.0.1'
     desc = 'android util & widghet libray, created by avocado'
     website = 'https://github.com/BoboHezi/avocado-util'
 }
