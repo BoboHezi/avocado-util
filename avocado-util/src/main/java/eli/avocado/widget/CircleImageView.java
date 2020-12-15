@@ -115,4 +115,19 @@ public class CircleImageView extends AppCompatImageView {
             super.onDraw(canvas);
         }
     }
+
+    public void setRadius(int mRadius) {
+        this.mRadius = mRadius;
+        postInvalidate();
+    }
+
+    public void setBorderColor(int mBorderColor) {
+        this.mBorderColor = mBorderColor;
+        postInvalidate();
+    }
+
+    public void setBorderWidth(int mBorderWidth) {
+        this.mBorderWidth = mBorderWidth;
+        postInvalidate();
+    }
 }
