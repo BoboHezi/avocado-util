@@ -1,13 +1,19 @@
 package eli.avocado.utils;
 
 import android.annotation.SuppressLint;
+import android.annotation.TargetApi;
+import android.app.Activity;
 import android.content.ClipData;
 import android.content.Context;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
+import android.content.res.Resources;
+import android.graphics.Point;
 import android.os.Build;
 import android.telephony.TelephonyManager;
 import android.util.Log;
+import android.view.Display;
+import android.view.WindowManager;
 
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
@@ -71,7 +77,10 @@ public class DeviceUtils {
      * @return
      */
     public static int deviceWidth(Context context) {
-        return context.getResources().getDisplayMetrics().widthPixels;
+        WindowManager windowManager = (WindowManager) context.getSystemService(Context.WINDOW_SERVICE);
+        Point outSize = new Point();
+        windowManager.getDefaultDisplay().getRealSize(outSize);
+        return outSize.x;
     }
 
     /**
@@ -84,6 +93,49 @@ public class DeviceUtils {
         return px2dp(context, deviceHeight(context));
     }
 
+    /**
+     * 获取应用所占宽度（px）
+     *
+     * @param context
+     * @return
+     */
+    public static int appWidth(Context context) {
+        WindowManager windowManager = (WindowManager) context.getSystemService(Context.WINDOW_SERVICE);
+        Display defaultDisplay = windowManager.getDefaultDisplay();
+        Point point = new Point();
+        defaultDisplay.getSize(point);
+
+        return point.x;
+    }
+
+    /**
+     * 获取应用所占宽度（dp）
+     *
+     * @param context
+     * @return
+     */
+    public static int appWidthDP(Context context) {
+        return px2dp(context, appWidth(context));
+    }
+
+    /**
+     * 获取应用所占高度（px）
+     *
+     * @param context
+     * @return
+     */
+    public static int appHeight(Context context) {
+        WindowManager windowManager = (WindowManager) context.getSystemService(Context.WINDOW_SERVICE);
+        Display defaultDisplay = windowManager.getDefaultDisplay();
+        Point point = new Point();
+        defaultDisplay.getSize(point);
+
+        return point.y;
+    }
+
+    public static int appHeightDP(Context context) {
+        return px2dp(context, appHeight(context));
+    }
 
     /**
      * 获取设备高度（px）
@@ -92,7 +144,61 @@ public class DeviceUtils {
      * @return
      */
     public static int deviceHeight(Context context) {
-        return context.getResources().getDisplayMetrics().heightPixels;
+        WindowManager windowManager = (WindowManager) context.getSystemService(Context.WINDOW_SERVICE);
+        Point outSize = new Point();
+        windowManager.getDefaultDisplay().getRealSize(outSize);
+        return outSize.y;
+    }
+
+    /**
+     * 获取状态栏高度
+     *
+     * @param context
+     * @return
+     */
+    public static int statusBarHeight(Context context) {
+        int statusBarHeight = 0;
+        Resources res = context.getResources();
+        int resourceId = res.getIdentifier("status_bar_height", "dimen", "android");
+        if (resourceId > 0) {
+            statusBarHeight = res.getDimensionPixelSize(resourceId);
+        }
+        return statusBarHeight;
+    }
+
+    /**
+     * 获取导航栏高度
+     *
+     * @param context
+     * @return
+     */
+    public static int navigationBarHeight(Context context) {
+        int result = 0;
+        if (hasNavBar(context)) {
+            Resources res = context.getResources();
+            int resourceId = res.getIdentifier("navigation_bar_height", "dimen", "android");
+            if (resourceId > 0) {
+                result = res.getDimensionPixelSize(resourceId);
+            }
+        }
+        return result;
+    }
+
+    /**
+     * 检查是否存在虚拟按键栏
+     *
+     * @param context
+     * @return
+     */
+    @TargetApi(Build.VERSION_CODES.ICE_CREAM_SANDWICH)
+    public static boolean hasNavBar(Context context) {
+        Resources res = context.getResources();
+        int resourceId = res.getIdentifier("config_showNavigationBar", "bool", "android");
+        boolean hasNav = false;
+        if (resourceId != 0) {
+            hasNav = res.getBoolean(resourceId);
+        }
+        return hasNav;
     }
 
     /**

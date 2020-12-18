@@ -131,19 +131,18 @@ public class SystemUtils {
 
     /**
      * 显示软键盘
+     * tips: 使用此方法前需要保证view获取到焦点（可以调用View.requestFocus()方法）。
+     * tips: 建议在视图确定已加载之后调用该方法，否则不生效。
      *
      * @param view    当前焦点view
-     * @param context
      */
-    public static void showKeypad(View view, Context context) {
+    public static void showKeypad(View view) {
         if (view == null) {
             return;
         }
-        InputMethodManager imm = (InputMethodManager) context
+        InputMethodManager imm = (InputMethodManager) view.getContext()
                 .getSystemService(Context.INPUT_METHOD_SERVICE);
-        if (!imm.isActive()) {
-            imm.showSoftInput(view, 0);
-        }
+        imm.showSoftInput(view, 0);
     }
 
     /**
