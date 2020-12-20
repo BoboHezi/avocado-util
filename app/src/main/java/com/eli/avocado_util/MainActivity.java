@@ -11,8 +11,6 @@ import androidx.appcompat.widget.Toolbar;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.snackbar.Snackbar;
 
-import eli.avocado.utils.SystemUtils;
-
 public class MainActivity extends AppCompatActivity {
 
     @Override

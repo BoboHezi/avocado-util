@@ -46,7 +46,7 @@ public class MenuActivity extends AppCompatActivity {
             for (ActivityInfo ai : pi.activities) {
                 if (!new ComponentName(ai.packageName, ai.name).equals(getComponentName())) {
                     activities[index] = ai;
-                    index ++;
+                    index++;
                 }
             }
             activitiesRv.setLayoutManager(new LinearLayoutManager(this));

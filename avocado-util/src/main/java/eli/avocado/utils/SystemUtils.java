@@ -134,7 +134,7 @@ public class SystemUtils {
      * tips: 使用此方法前需要保证view获取到焦点（可以调用View.requestFocus()方法）。
      * tips: 建议在视图确定已加载之后调用该方法，否则不生效。
      *
-     * @param view    当前焦点view
+     * @param view 当前焦点view
      */
     public static void showKeypad(View view) {
         if (view == null) {

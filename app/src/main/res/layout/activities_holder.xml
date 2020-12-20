@@ -1,15 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:orientation="horizontal"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
+    android:orientation="horizontal"
     android:padding="20dp">
 
     <ImageView
         android:id="@+id/activity_icon"
         android:layout_width="30dp"
         android:layout_height="30dp"
-        android:src="@mipmap/thumbnil"/>
+        android:src="@mipmap/thumbnil" />
 
     <LinearLayout
         android:layout_width="wrap_content"
@@ -22,15 +22,15 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="bottom"
-            android:textSize="20sp"
-            android:text="Test" />
+            android:text="Test"
+            android:textSize="20sp" />
 
         <TextView
             android:id="@+id/activity_class"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:singleLine="true"
             android:ellipsize="marquee"
-            android:text="com.example.zhanbozhang.test/.ActivityMenu"/>
+            android:singleLine="true"
+            android:text="com.example.zhanbozhang.test/.ActivityMenu" />
     </LinearLayout>
 </LinearLayout>

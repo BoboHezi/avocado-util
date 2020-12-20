@@ -2,7 +2,6 @@ package eli.avocado.utils;
 
 import android.annotation.SuppressLint;
 import android.annotation.TargetApi;
-import android.app.Activity;
 import android.content.ClipData;
 import android.content.Context;
 import android.content.pm.ApplicationInfo;
@@ -133,6 +132,12 @@ public class DeviceUtils {
         return point.y;
     }
 
+    /**
+     * 获取应用所占高度（dp）
+     *
+     * @param context
+     * @return
+     */
     public static int appHeightDP(Context context) {
         return px2dp(context, appHeight(context));
     }
