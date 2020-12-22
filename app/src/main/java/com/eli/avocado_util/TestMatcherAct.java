@@ -40,6 +40,7 @@ public class TestMatcherAct extends AppCompatActivity {
             Log.i(TAG, "afterTextChanged: " + s);
             String str = s.toString();
             matchLabel.setText("");
+            StringUtils.findEmailAddress(str);
             if (StringUtils.containsEmoji(str)) {
                 SpannableStringBuilder ssb = new SpannableStringBuilder("Emoji");
                 ssb.setSpan(new ForegroundColorSpan(0xff1d77f2), 0, "Emoji".length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);

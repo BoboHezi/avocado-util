@@ -7,6 +7,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -35,7 +36,7 @@ public class StringUtils {
      * @param str
      * @return
      */
-    public static boolean isAbsoluteEmpty(String str) {
+    public static boolean isAbsoluteEmpty(CharSequence str) {
         if (str == null || "".equals(str)) {
             return true;
         }
@@ -65,6 +66,9 @@ public class StringUtils {
      * @return
      */
     public static boolean isValidUrl(String url) {
+        if (isAbsoluteEmpty(url)) {
+            return false;
+        }
         String regex = "((http|ftp|https)://)(([a-zA-Z0-9\\._-]+\\.[a-zA-Z]{2,6})|([0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3}))(:[0-9]{1,4})*(/[a-zA-Z0-9\\&%_\\./-~-]*)?";
         return url.matches(regex);
     }
@@ -76,6 +80,9 @@ public class StringUtils {
      * @return
      */
     public static String splitHttp(String url) {
+        if (isAbsoluteEmpty(url)) {
+            url = "";
+        }
         if (url.toLowerCase().startsWith("http://") || url.toLowerCase().startsWith("https://")
                 || url.toLowerCase().startsWith("ftp://")) {
             return url;
@@ -91,7 +98,7 @@ public class StringUtils {
      * @return
      */
     public static boolean isUrl(String webIDString) {
-        if (TextUtils.isEmpty(webIDString)) {
+        if (isAbsoluteEmpty(webIDString)) {
             return false;
         }
         if (webIDString.toLowerCase().startsWith("https://") || webIDString.toLowerCase().startsWith("http://")) {
@@ -120,10 +127,35 @@ public class StringUtils {
      * @return
      */
     public static boolean isEmailAddress(String string) {
-        if (string == null || string.trim().length() == 0) {
+        if (isAbsoluteEmpty(string)) {
             return false;
         }
         return EMAIL.matcher(string).matches();
+    }
+
+    /**
+     * 寻找输入字符串符合输入pattern的内容索引
+     * List成对出现，偶数位表示开始，基数位表示结束
+     *
+     * @param input
+     * @param pattern
+     * @return
+     */
+    public static List<Integer> findSth(String input, Pattern pattern) {
+        if (!isAbsoluteEmpty(input) && pattern != null) {
+            Matcher matcher = pattern.matcher(input);
+            if (matcher.find()) {
+                List<Integer> indexes = new ArrayList();
+                indexes.add(matcher.start());
+                indexes.add(matcher.end());
+                while (matcher.find()) {
+                    indexes.add(matcher.start());
+                    indexes.add(matcher.end());
+                }
+                return indexes;
+            }
+        }
+        return null;
     }
 
     /**
@@ -133,7 +165,7 @@ public class StringUtils {
      * @return
      */
     public static boolean isImageUrl(String url) {
-        if (url == null || url.trim().length() == 0) {
+        if (isAbsoluteEmpty(url)) {
             return false;
         }
         return IMG_URL.matcher(url).matches();
@@ -162,7 +194,7 @@ public class StringUtils {
         if (isAbsoluteEmpty(str)) {
             return false;
         }
-        return str != null && (EMOJI.matcher(str.trim()).matches() || containSpecialEmoji(str));
+        return str != null && (EMOJI.matcher(str.trim()).find() || containSpecialEmoji(str));
     }
 
     /**
@@ -172,6 +204,9 @@ public class StringUtils {
      * @return
      */
     public static boolean containSpecialEmoji(CharSequence source) {
+        if (isAbsoluteEmpty(source)) {
+            return false;
+        }
         for (int i = 0; i < source.length(); i++) {
             int code = Integer.valueOf(source.charAt(i));
             if (code >= 0x1F600 && code <= 0x1F64F
@@ -319,7 +354,7 @@ public class StringUtils {
      * @return
      */
     public static String full2Half(String str) {
-        if (TextUtils.isEmpty(str)) {
+        if (isAbsoluteEmpty(str)) {
             return "";
         }
 
@@ -346,7 +381,7 @@ public class StringUtils {
      * @return
      */
     public static Map<String, String> parseQuery(String query, char split1, char split2, String dupLink) {
-        if (!TextUtils.isEmpty(query) && query.indexOf(split2) > 0) {
+        if (!isAbsoluteEmpty(query) && query.indexOf(split2) > 0) {
             Map<String, String> result = new HashMap<>();
 
             String name = null;
