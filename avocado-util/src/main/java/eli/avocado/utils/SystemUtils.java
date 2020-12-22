@@ -150,7 +150,7 @@ public class SystemUtils {
      *
      * @param view 当前焦点view
      */
-    public static boolean isShowKeypad(View view) {
+    public static boolean isActiveKeypad(View view) {
         if (view == null)
             return false;
         InputMethodManager imm = (InputMethodManager) view.getContext()

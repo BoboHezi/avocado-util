@@ -1,21 +1,31 @@
 package eli.avocado.utils;
 
+import android.Manifest;
 import android.annotation.SuppressLint;
 import android.annotation.TargetApi;
+import android.app.Activity;
 import android.content.ClipData;
 import android.content.Context;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
 import android.content.res.Resources;
+import android.content.res.TypedArray;
 import android.graphics.Point;
 import android.os.Build;
+import android.provider.Settings;
+import android.telephony.SubscriptionInfo;
+import android.telephony.SubscriptionManager;
 import android.telephony.TelephonyManager;
+import android.text.TextUtils;
 import android.util.Log;
 import android.view.Display;
+import android.view.View;
+import android.view.Window;
 import android.view.WindowManager;
 
-import java.io.UnsupportedEncodingException;
-import java.net.URLEncoder;
+import androidx.annotation.RequiresPermission;
+import androidx.core.app.ActivityCompat;
+
 import java.util.TimeZone;
 
 /**
@@ -207,6 +217,82 @@ public class DeviceUtils {
     }
 
     /**
+     * 判断当前应用窗口是否覆盖在状态栏
+     *
+     * @param activity
+     * @return
+     */
+    public static boolean isCoverStatusBar(Activity activity) {
+        Window win = activity.getWindow();
+
+        boolean coverStatusBar = false;
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
+            // check theme attrs
+            int[] attrs = {android.R.attr.windowTranslucentStatus};
+            TypedArray a = activity.obtainStyledAttributes(attrs);
+            try {
+                coverStatusBar = a.getBoolean(0, false);
+            } finally {
+                a.recycle();
+            }
+
+            // check window flags
+            WindowManager.LayoutParams winParams = win.getAttributes();
+            int bits = WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS;
+            if ((winParams.flags & bits) != 0) {
+                coverStatusBar = true;
+            }
+
+            // check decorView
+            int option = win.getDecorView().getSystemUiVisibility();
+            int flag = View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN | View.SYSTEM_UI_FLAG_LAYOUT_STABLE;
+            if ((option & flag) == flag) {
+                coverStatusBar = true;
+            }
+        }
+
+        View content = activity.getWindow().getDecorView().findViewById(android.R.id.content);
+        if (content != null) {
+
+        }
+
+        return coverStatusBar | isCoverNavBar(activity);
+    }
+
+    /**
+     * 判断当前应用窗口是否覆盖在导航栏
+     *
+     * @param activity
+     * @return
+     */
+    public static boolean isCoverNavBar(Activity activity) {
+        Window win = activity.getWindow();
+
+        boolean coverNavBar = false;
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
+            // check theme attrs
+            int[] attrs = {android.R.attr.windowTranslucentNavigation};
+            TypedArray a = activity.obtainStyledAttributes(attrs);
+            try {
+                coverNavBar = a.getBoolean(0, false);
+            } finally {
+                a.recycle();
+            }
+
+            // check window flags
+            WindowManager.LayoutParams winParams = win.getAttributes();
+            int bits = WindowManager.LayoutParams.FLAG_TRANSLUCENT_NAVIGATION;
+            if ((winParams.flags & bits) != 0) {
+                coverNavBar = true;
+            }
+        }
+
+        return coverNavBar;
+    }
+
+    /**
      * 获取手机品牌
      *
      * @return
@@ -231,21 +317,25 @@ public class DeviceUtils {
      * @param context
      * @return
      */
+    @SuppressLint("MissingPermission")
     public static boolean isEmulator(Context context) {
         if (context == null) {
             return false;
         }
+        String deviceId = null;
         try {
             TelephonyManager telephonyManager =
                     (TelephonyManager) context.getSystemService(Context.TELEPHONY_SERVICE);
             assert telephonyManager != null;
-            @SuppressLint("MissingPermission") String deviceId = telephonyManager.getDeviceId();
-            return deviceId != null && "000000000000000".equals(deviceId) ||
-                    ("sdk".equals(Build.MODEL)) || ("google_sdk".equals(Build.MODEL));
+            deviceId = telephonyManager.getDeviceId();
         } catch (Exception e) {
             Log.e(TAG, "isEmulator: ", e);
         }
-        return false;
+        if (TextUtils.isEmpty(deviceId)) {
+            deviceId = Settings.Secure.getString(context.getContentResolver(), Settings.Secure.ANDROID_ID);
+        }
+        return deviceId != null && "000000000000000".equals(deviceId) ||
+                ("sdk".equals(Build.MODEL)) || ("google_sdk".equals(Build.MODEL));
     }
 
     /**
@@ -259,66 +349,79 @@ public class DeviceUtils {
     }
 
     /**
-     * 判断是否包含SIM卡
+     * 获取SIM卡状态
      *
-     * @return 0: 未知 1: 没有sim卡 2:有sim卡
+     * @return SIM卡状态
+     * 0: 未知, 1: 没有sim卡, 2: 有sim卡但不可用, 3: 有sim卡且可用
      */
-    public static int hasSimCard(Context context) {
+    public static int[] getSimCardStatus(Context context) {
         TelephonyManager telMgr = (TelephonyManager)
                 context.getSystemService(Context.TELEPHONY_SERVICE);
         assert telMgr != null;
-        int simState = telMgr.getSimState();
-        int result = 2;
-        switch (simState) {
-            case TelephonyManager.SIM_STATE_ABSENT:
-                result = 1;
-                break;
-            case TelephonyManager.SIM_STATE_UNKNOWN:
-                result = 0;
-                break;
+        int numSlots = 1;
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            numSlots = telMgr.getPhoneCount();
+        }
+        int result[] = new int[numSlots];
+
+        for (int i = 0; i < numSlots; i++) {
+            int state;
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                state = telMgr.getSimState(i);
+            } else {
+                state = telMgr.getSimState();
+            }
+
+            switch (state) {
+                case TelephonyManager.SIM_STATE_UNKNOWN:
+                    state = 0;
+                    break;
+                case TelephonyManager.SIM_STATE_ABSENT:
+                    state = 1;
+                    break;
+                case TelephonyManager.SIM_STATE_READY:
+                    state = 3;
+                    break;
+                default:
+                    state = 2;
+            }
+            result[i] = state;
         }
         return result;
     }
 
     /**
      * 返回手机运营商名称
+     * tips: 需要应用有权限: {@link android.Manifest.permission#READ_PHONE_STATE}
      *
-     * @return telephonyManager  1 移动，2 联通 ，3 电信，不能识别返回IMSI码
+     * @param context
+     * @return 运营商名称
      */
-    @SuppressLint({"MissingPermission", "HardwareIds"})
-    public static String getProvidersName(Context context) {
-        String ProvidersName;
-        TelephonyManager telephonyManager =
-                (TelephonyManager) context.getSystemService(Context.TELEPHONY_SERVICE);
-        String IMSI;
-        try {
-            if (telephonyManager != null) {
-                IMSI = telephonyManager.getSubscriberId();
-            } else {
-                IMSI = "0";
-            }
+    @RequiresPermission(android.Manifest.permission.READ_PHONE_STATE)
+    public static String[] getProvidersName(Context context) {
+        TelephonyManager telMgr = (TelephonyManager)
+                context.getSystemService(Context.TELEPHONY_SERVICE);
+        assert telMgr != null;
+        int numSlots = 1;
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            numSlots = telMgr.getPhoneCount();
+        }
+        String[] providers = new String[numSlots];
 
-        } catch (Exception e) {
-            IMSI = "0";
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP_MR1) {
+            SubscriptionManager ssb = (SubscriptionManager)
+                    context.getSystemService(Context.TELEPHONY_SUBSCRIPTION_SERVICE);
+            if (ActivityCompat.checkSelfPermission(context, Manifest.permission.READ_PHONE_STATE)
+                    == PackageManager.PERMISSION_GRANTED) {
+                for (int i = 0; i < numSlots; ++i) {
+                    SubscriptionInfo sir = ssb.getActiveSubscriptionInfoForSimSlotIndex(i);
+                    if (sir != null) {
+                        providers[i] = sir.getDisplayName().toString();
+                    }
+                }
+            }
         }
-        if (IMSI == null) {
-            return "unknow";
-        }
-        if (IMSI.startsWith("46000") || IMSI.startsWith("46002")) {
-            ProvidersName = "1";
-        } else if (IMSI.startsWith("46001")) {
-            ProvidersName = "2";
-        } else if (IMSI.startsWith("46003")) {
-            ProvidersName = "3";
-        } else {
-            ProvidersName = IMSI;
-        }
-        try {
-            ProvidersName = URLEncoder.encode("" + ProvidersName, "UTF-8");
-        } catch (UnsupportedEncodingException e) {
-            Log.e(TAG, "getProvidersName: ", e);
-        }
-        return ProvidersName;
+        return providers;
     }
 
     /**
