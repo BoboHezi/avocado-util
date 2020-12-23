@@ -22,13 +22,13 @@ import java.util.regex.Pattern;
  */
 public class StringUtils {
 
-    private static final String TAG = "StringUtils";
-
-    private final static Pattern EMAIL = Pattern.compile("\\w+([-+.]\\w+)*@\\w+([-.]\\w+)*\\.\\w+([-.]\\w+)*");
-    private final static Pattern IMG_URL = Pattern.compile(".*?(gif|jpeg|png|jpg|bmp)");
-    private final static Pattern PHONE = Pattern.compile("^(0|86|17951)?(13[0-9]|15[0-9]|18[0-9]|17[0-9]|14[57])[0-9]{8}$");
-    private static final Pattern EMOJI = Pattern.compile("[\ud83c\udc00-\ud83c\udfff]|[\ud83d\udc00-\ud83d\udfff]|[\u2600-\u27ff]|[\ud83e\udc00-\ud83e\udfff]",
+    public final static Pattern EMAIL = Pattern.compile("\\w+([-+.]\\w+)*@\\w+([-.]\\w+)*\\.\\w+([-.]\\w+)*");
+    public final static Pattern IMG_URL = Pattern.compile(".*?(gif|jpeg|png|jpg|bmp)");
+    public final static Pattern PHONE = Pattern.compile("(0|86|17951)?(13[0-9]|15[0-9]|18[0-9]|17[0-9]|14[57])[0-9]{8}");
+    public final static Pattern EMOJI = Pattern.compile("[\ud83c\udc00-\ud83c\udfff]|[\ud83d\udc00-\ud83d\udfff]|[\u2600-\u27ff]|[\ud83e\udc00-\ud83e\udfff]",
             Pattern.UNICODE_CASE | Pattern.CASE_INSENSITIVE);
+    public final static Pattern VALID_URL = Pattern.compile("((http|ftp|https)://)(([a-zA-Z0-9\\._-]+\\.[a-zA-Z]{2,6})|([0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3}))(:[0-9]{1,4})*(/[a-zA-Z0-9\\&%_\\./-~-]*)?");
+    private static final String TAG = "StringUtils";
 
     /**
      * 判断给定字符串是否空白(仅由空格、制表符、回车符、换行符组成的字符串)
@@ -62,50 +62,49 @@ public class StringUtils {
     /**
      * 判断字符串是否是合法的网址
      *
-     * @param url
+     * @param source
      * @return
      */
-    public static boolean isValidUrl(String url) {
-        if (isAbsoluteEmpty(url)) {
+    public static boolean isValidUrl(String source) {
+        if (isAbsoluteEmpty(source)) {
             return false;
         }
-        String regex = "((http|ftp|https)://)(([a-zA-Z0-9\\._-]+\\.[a-zA-Z]{2,6})|([0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3}))(:[0-9]{1,4})*(/[a-zA-Z0-9\\&%_\\./-~-]*)?";
-        return url.matches(regex);
+        return VALID_URL.matcher(source).matches();
     }
 
     /**
      * 给字符串添加http
      *
-     * @param url
+     * @param source
      * @return
      */
-    public static String splitHttp(String url) {
-        if (isAbsoluteEmpty(url)) {
-            url = "";
+    public static String splitHttp(String source) {
+        if (isAbsoluteEmpty(source)) {
+            source = "";
         }
-        if (url.toLowerCase().startsWith("http://") || url.toLowerCase().startsWith("https://")
-                || url.toLowerCase().startsWith("ftp://")) {
-            return url;
+        if (source.toLowerCase().startsWith("http://") || source.toLowerCase().startsWith("https://")
+                || source.toLowerCase().startsWith("ftp://")) {
+            return source;
         } else {
-            return "http://" + url;
+            return "http://" + source;
         }
     }
 
     /**
      * 判断字符串是否是合法的网址
      *
-     * @param webIDString
+     * @param source
      * @return
      */
-    public static boolean isUrl(String webIDString) {
-        if (isAbsoluteEmpty(webIDString)) {
+    public static boolean isUrl(String source) {
+        if (isAbsoluteEmpty(source)) {
             return false;
         }
-        if (webIDString.toLowerCase().startsWith("https://") || webIDString.toLowerCase().startsWith("http://")) {
+        if (source.toLowerCase().startsWith("https://") || source.toLowerCase().startsWith("http://")) {
             return true;
         }
         String match = "^[0-9a-zA-Z]+[0-9a-zA-Z\\.-]*\\.[a-zA-Z]{2,4}$";
-        String[] arrays = webIDString.split("/");
+        String[] arrays = source.split("/");
         for (String str : arrays) {
             if (str.matches(match)) {
                 return true;
@@ -113,7 +112,7 @@ public class StringUtils {
         }
         String regex = "\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}";
         Pattern p = Pattern.compile(regex);
-        Matcher m = p.matcher(webIDString);
+        Matcher m = p.matcher(source);
         while (m.find()) {
             return true;
         }
@@ -123,37 +122,46 @@ public class StringUtils {
     /**
      * 判断字符串是否是合法的邮箱地址
      *
-     * @param string
+     * @param source
      * @return
      */
-    public static boolean isEmailAddress(String string) {
-        if (isAbsoluteEmpty(string)) {
+    public static boolean isEmailAddress(String source) {
+        if (isAbsoluteEmpty(source)) {
             return false;
         }
-        return EMAIL.matcher(string).matches();
+        return EMAIL.matcher(source).matches();
+    }
+
+    /**
+     * 判断字符串是否是Emoji
+     *
+     * @param source
+     * @return
+     */
+    public static boolean isEmoji(String source) {
+        if (isAbsoluteEmpty(source)) {
+            return false;
+        }
+        return EMOJI.matcher(source).matches();
     }
 
     /**
      * 寻找输入字符串符合输入pattern的内容索引
      * List成对出现，偶数位表示开始，基数位表示结束
      *
-     * @param input
+     * @param source
      * @param pattern
      * @return
      */
-    public static List<Integer> findSth(String input, Pattern pattern) {
-        if (!isAbsoluteEmpty(input) && pattern != null) {
-            Matcher matcher = pattern.matcher(input);
-            if (matcher.find()) {
-                List<Integer> indexes = new ArrayList();
+    public static List<Integer> findSth(String source, Pattern pattern) {
+        if (!isAbsoluteEmpty(source) && pattern != null) {
+            Matcher matcher = pattern.matcher(source);
+            List<Integer> indexes = new ArrayList();
+            while (matcher.find()) {
                 indexes.add(matcher.start());
                 indexes.add(matcher.end());
-                while (matcher.find()) {
-                    indexes.add(matcher.start());
-                    indexes.add(matcher.end());
-                }
-                return indexes;
             }
+            return indexes;
         }
         return null;
     }
@@ -161,40 +169,40 @@ public class StringUtils {
     /**
      * 判断字符串是否是有效的图片地址
      *
-     * @param url
+     * @param source
      * @return
      */
-    public static boolean isImageUrl(String url) {
-        if (isAbsoluteEmpty(url)) {
+    public static boolean isImageUrl(String source) {
+        if (isAbsoluteEmpty(source)) {
             return false;
         }
-        return IMG_URL.matcher(url).matches();
+        return IMG_URL.matcher(source).matches();
     }
 
     /**
      * 判断字符串是否是手机号
      *
-     * @param str
+     * @param source
      * @return
      */
-    public static boolean isPhoneNumber(String str) {
-        if (isAbsoluteEmpty(str)) {
+    public static boolean isPhoneNumber(String source) {
+        if (isAbsoluteEmpty(source)) {
             return false;
         }
-        return str != null && PHONE.matcher(str.trim()).matches();
+        return PHONE.matcher(source).matches();
     }
 
     /**
      * 判断字符串是否包含表情
      *
-     * @param str
+     * @param source
      * @return
      */
-    public static boolean containsEmoji(String str) {
-        if (isAbsoluteEmpty(str)) {
+    public static boolean containsEmoji(String source) {
+        if (isAbsoluteEmpty(source)) {
             return false;
         }
-        return str != null && (EMOJI.matcher(str.trim()).find() || containSpecialEmoji(str));
+        return EMOJI.matcher(source).find() || containSpecialEmoji(source);
     }
 
     /**
@@ -265,19 +273,19 @@ public class StringUtils {
      *
      * @param start
      * @param subLength
-     * @param string
+     * @param source
      * @return
      */
-    public static String getSubString(int start, int subLength, String string) {
-        if (string == null) {
+    public static String getSubString(int start, int subLength, String source) {
+        if (source == null) {
             return "";
         }
-        int length = string.length();
+        int length = source.length();
         start = Math.min(Math.max(0, start), length);
         subLength = subLength >= 1 ? subLength : 1;
         int end = start + subLength;
         end = end > length ? length : end;
-        return string.substring(start, end);
+        return source.substring(start, end);
     }
 
     /**
@@ -304,26 +312,26 @@ public class StringUtils {
     /**
      * 去除字符串中的空格、回车、换行符、制表符
      *
-     * @param str
+     * @param source
      * @return
      */
-    public static String replaceBlank(String str) {
-        if (!TextUtils.isEmpty(str)) {
+    public static String replaceBlank(String source) {
+        if (!TextUtils.isEmpty(source)) {
             Pattern p = Pattern.compile("\\s*|\t|\r|\n");
-            Matcher m = p.matcher(str);
-            str = m.replaceAll("");
+            Matcher m = p.matcher(source);
+            source = m.replaceAll("");
         }
-        return str;
+        return source;
     }
 
     /**
      * 删除所有的标点符号
      *
-     * @param str
+     * @param source
      * @return
      */
-    public static String trimPunctuation(String str) {
-        return str.replaceAll("[\\pP\\p{Punct}]", "");
+    public static String trimPunctuation(String source) {
+        return source.replaceAll("[\\pP\\p{Punct}]", "");
     }
 
     /**
@@ -350,21 +358,21 @@ public class StringUtils {
     /**
      * 全角字符变半角字符
      *
-     * @param str
+     * @param source
      * @return
      */
-    public static String full2Half(String str) {
-        if (isAbsoluteEmpty(str)) {
+    public static String full2Half(String source) {
+        if (isAbsoluteEmpty(source)) {
             return "";
         }
 
         StringBuilder builder = new StringBuilder();
-        for (int i = 0; i < str.length(); i++) {
-            char c = str.charAt(i);
+        for (int i = 0; i < source.length(); i++) {
+            char c = source.charAt(i);
             if (c >= 65281 && c < 65373) {
                 builder.append((char) (c - 65248));
             } else {
-                builder.append(str.charAt(i));
+                builder.append(source.charAt(i));
             }
         }
         return builder.toString();

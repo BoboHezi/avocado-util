@@ -5,6 +5,7 @@ import android.text.Editable;
 import android.text.Spannable;
 import android.text.SpannableStringBuilder;
 import android.text.TextWatcher;
+import android.text.style.BackgroundColorSpan;
 import android.text.style.ForegroundColorSpan;
 import android.util.Log;
 import android.view.View;
@@ -14,12 +15,26 @@ import android.widget.TextView;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 
+import java.util.HashMap;
+import java.util.List;
+import java.util.regex.Pattern;
+
 import eli.avocado.utils.StringUtils;
 import eli.avocado.utils.SystemUtils;
 
 public class TestMatcherAct extends AppCompatActivity {
 
     private static final String TAG = "TestMatcherAct";
+
+    private static HashMap<Pattern, Object[]> PATTERNS = new HashMap<Pattern, Object[]>() {
+        {
+            put(StringUtils.EMAIL, new Object[]{"EMAIL", 0xFF6200EE});
+            put(StringUtils.IMG_URL, new Object[]{"IMG_URL", 0xFF3700B3});
+            put(StringUtils.PHONE, new Object[]{"PHONE", 0xFF03DAC5});
+            put(StringUtils.VALID_URL, new Object[]{"VALID_URL", 0xFF2E771C});
+            put(StringUtils.EMOJI, new Object[]{"EMOJI", 0xFF762819});
+        }
+    };
 
     private EditText input;
 
@@ -40,48 +55,45 @@ public class TestMatcherAct extends AppCompatActivity {
             Log.i(TAG, "afterTextChanged: " + s);
             String str = s.toString();
             matchLabel.setText("");
-            StringUtils.findEmailAddress(str);
-            if (StringUtils.containsEmoji(str)) {
-                SpannableStringBuilder ssb = new SpannableStringBuilder("Emoji");
-                ssb.setSpan(new ForegroundColorSpan(0xff1d77f2), 0, "Emoji".length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
-                matchLabel.append(" ");
-                matchLabel.append(ssb);
+
+            SpannableStringBuilder sb = new SpannableStringBuilder(str);
+            for (Pattern pattern : PATTERNS.keySet()) {
+                List<Integer> indexes = StringUtils.findSth(str, pattern);
+                if (indexes != null && indexes.size() > 1 && indexes.size() % 2 == 0) {
+                    String label = (String) PATTERNS.get(pattern)[0];
+                    int color = (int) PATTERNS.get(pattern)[1];
+
+                    for (int i = 0; i < indexes.size(); i += 2) {
+                        sb.setSpan(new BackgroundColorSpan(color),
+                                indexes.get(i), indexes.get(i + 1), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+                    }
+                    SpannableStringBuilder ssb = new SpannableStringBuilder(label);
+                    ssb.setSpan(new ForegroundColorSpan(color), 0, label.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+                    matchLabel.append(",");
+                    matchLabel.append(ssb);
+                }
             }
-            if (StringUtils.containSpecialEmoji(str)) {
-                SpannableStringBuilder ssb = new SpannableStringBuilder("Special Emoji");
-                ssb.setSpan(new ForegroundColorSpan(0xff1d77f2), 0, "Special Emoji".length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
-                matchLabel.append(" ");
-                matchLabel.append(ssb);
-            }
-            if (StringUtils.isValidUrl(str)) {
-                SpannableStringBuilder ssb = new SpannableStringBuilder("Valid Url");
-                ssb.setSpan(new ForegroundColorSpan(0xff1d77f2), 0, "Valid Url".length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
-                matchLabel.append(" ");
-                matchLabel.append(ssb);
-            }
-            if (StringUtils.isUrl(str)) {
-                SpannableStringBuilder ssb = new SpannableStringBuilder("is Url");
-                ssb.setSpan(new ForegroundColorSpan(0xff1d77f2), 0, "is Url".length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
-                matchLabel.append(" ");
-                matchLabel.append(ssb);
-            }
+            int start = input.getSelectionStart();
+            int end = input.getSelectionEnd();
+            input.removeTextChangedListener(this);
+            input.setText(sb);
+            input.addTextChangedListener(this);
+            input.setSelection(start, end);
+
             if (StringUtils.isEmailAddress(str)) {
-                SpannableStringBuilder ssb = new SpannableStringBuilder("Email Address");
-                ssb.setSpan(new ForegroundColorSpan(0xff1d77f2), 0, "Email Address".length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
-                matchLabel.append(" ");
-                matchLabel.append(ssb);
+                matchLabel.append("\nisEmailAddress");
             }
             if (StringUtils.isImageUrl(str)) {
-                SpannableStringBuilder ssb = new SpannableStringBuilder("Image Url");
-                ssb.setSpan(new ForegroundColorSpan(0xff1d77f2), 0, "Image Url".length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
-                matchLabel.append(" ");
-                matchLabel.append(ssb);
+                matchLabel.append("\nisImageUrl");
             }
             if (StringUtils.isPhoneNumber(str)) {
-                SpannableStringBuilder ssb = new SpannableStringBuilder("Phone Number");
-                ssb.setSpan(new ForegroundColorSpan(0xff1d77f2), 0, "Phone Number".length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
-                matchLabel.append(" ");
-                matchLabel.append(ssb);
+                matchLabel.append("\nisPhoneNumber");
+            }
+            if (StringUtils.isValidUrl(str)) {
+                matchLabel.append("\nisValidUrl");
+            }
+            if (StringUtils.isEmoji(str)) {
+                matchLabel.append("\nisEmoji");
             }
         }
     };
