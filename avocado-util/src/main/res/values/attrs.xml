@@ -5,4 +5,15 @@
         <attr name="borderColor" format="color" />
         <attr name="borderWidth" format="dimension" />
     </declare-styleable>
+
+    <declare-styleable name="GradientLayout">
+        <attr name="showGradient" format="boolean" />
+        <attr name="colors" format="reference" />
+        <attr name="angle" format="integer" />
+        <attr name="base_color" format="color" />
+    </declare-styleable>
+
+    <declare-styleable name="HollowTextView">
+        <attr name="wrapper_color" format="color" />
+    </declare-styleable>
 </resources>

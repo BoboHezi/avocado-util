@@ -3,6 +3,7 @@
     package="com.eli.avocado_util">
 
     <uses-permission android:name="android.permission.READ_PHONE_STATE" />
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
 
     <application
         android:allowBackup="true"
@@ -32,6 +33,10 @@
             android:name=".TestDeviceUtilsAct"
             android:label="测试DeviceUtils"
             android:theme="@style/AppTheme.NoActionBar" />
+
+        <activity
+            android:name=".TestHollowViewAct"
+            android:label="测试透视组件" />
     </application>
 
 </manifest>

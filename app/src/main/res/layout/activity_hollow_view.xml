@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<eli.avocado.widget.GradientLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/gradient_layout"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    app:angle="50"
+    app:base_color="#fff"
+    app:colors="@array/colors"
+    app:showGradient="true">
+
+    <eli.avocado.widget.HollowTextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_horizontal"
+        android:fontFamily="sans-serif-smallcaps"
+        android:text="This is a hollow text"
+        android:textSize="30sp"
+        app:wrapper_color="#fff" />
+
+    <eli.avocado.widget.HollowTextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="20dp"
+        android:text="This is another hollow text"
+        android:textSize="20sp"
+        app:wrapper_color="#fff" />
+
+    <eli.avocado.widget.HollowTextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="right"
+        android:layout_marginTop="20dp"
+        android:text="This is another hollow text..."
+        android:textSize="40sp"
+        app:fontFamily="cursive"
+        app:wrapper_color="#fff" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="20dp"
+        android:text="this is a normal TextView" />
+</eli.avocado.widget.GradientLayout>
