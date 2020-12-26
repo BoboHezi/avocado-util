@@ -24,6 +24,12 @@ import java.util.List;
 
 import eli.avocado.utils.R;
 
+/**
+ * 渐变色ViewGroup，只在子控件部分显示渐变色，其他部分显示固定颜色
+ *
+ * @author Eli Chang
+ * @email eliflichang@gmail.com
+ */
 @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
 public class GradientLayout extends LinearLayout {
 

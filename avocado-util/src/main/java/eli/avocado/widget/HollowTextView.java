@@ -18,7 +18,10 @@ import androidx.appcompat.widget.AppCompatTextView;
 import eli.avocado.utils.R;
 
 /**
+ * 镂空TextView，字体部分镂空效果，显示底部颜色,其他部分显示固定颜色
  *
+ * @author Eli Chang
+ * @email eliflichang@gmail.com
  */
 @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
 public class HollowTextView extends AppCompatTextView {
@@ -47,37 +50,27 @@ public class HollowTextView extends AppCompatTextView {
 
         mPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
         mPaint.setStyle(Paint.Style.FILL);
-        mPaint.setTextSize(getTextSize());
-        mPaint.setTypeface(getTypeface());
-
-        mPaint.setXfermode(new PorterDuffXfermode(Build.VERSION.SDK_INT >= Build.VERSION_CODES.P ?
-                PorterDuff.Mode.DST_OUT : PorterDuff.Mode.CLEAR));
     }
 
     @Override
     protected void onDraw(Canvas canvas) {
-        mPaint.setXfermode(new PorterDuffXfermode(Build.VERSION.SDK_INT >= Build.VERSION_CODES.P ?
-                PorterDuff.Mode.DST_OUT : PorterDuff.Mode.CLEAR));
-        Bitmap result = Bitmap.createBitmap(getWidth(), getHeight(), Bitmap.Config.ARGB_8888);
-        Canvas c = new Canvas(result);
-        // draw background (totally dark)
-        c.drawColor(mWrapperColor);
-        // draw text
-        c.drawText(getText().toString(), 0, getTextSize(), mPaint);
-        Log.i(TAG, "draw text: " + getText());
+        int viewWidth = getMeasuredWidth();
+        int viewHeight = getMeasuredHeight();
 
-        //drawing to view
-        float textWidth = mPaint.measureText(getText().toString());
-        int leftOffset = (int) ((getMeasuredWidth() - textWidth) / 2);
-        leftOffset = leftOffset < 0 ? 0 : leftOffset;
-        mPaint.setXfermode(null);
-        if (leftOffset > 0) {
-            Bitmap fillBitmap = Bitmap.createBitmap(leftOffset, getHeight(), Bitmap.Config.ARGB_8888);
-            Canvas fillCanvas = new Canvas(fillBitmap);
-            fillCanvas.drawColor(mWrapperColor);
-            canvas.drawBitmap(fillBitmap, 0, 0, mPaint);
-        }
-        canvas.drawBitmap(result, leftOffset, 0, mPaint);
+        Log.d(TAG, "HollowTextView: " + getText());
+
+        // draw text bitmap
+        Bitmap textBmp = Bitmap.createBitmap(viewWidth, viewHeight, Bitmap.Config.ARGB_8888);
+        Canvas c = new Canvas(textBmp);
+        c.drawColor(mWrapperColor);
+        getPaint().setXfermode(new PorterDuffXfermode(Build.VERSION.SDK_INT >= Build.VERSION_CODES.P
+                ? PorterDuff.Mode.DST_OUT : PorterDuff.Mode.CLEAR));
+        super.onDraw(c);
+        getPaint().setXfermode(null);
+
+        // draw to view
+        canvas.drawColor(Color.TRANSPARENT);
+        canvas.drawBitmap(textBmp, 0, 0, mPaint);
     }
 
     /**
