@@ -27,9 +27,9 @@
         android:layout_height="100dp"
         android:layout_gravity="center"
         android:src="@mipmap/thumbnil"
-        app:radius="50dp"
         app:borderColor="#f00"
-        app:borderWidth="2px"/>
+        app:borderWidth="2px"
+        app:radius="50dp" />
 
     <com.google.android.material.floatingactionbutton.FloatingActionButton
         android:id="@+id/fab"
