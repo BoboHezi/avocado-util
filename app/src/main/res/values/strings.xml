@@ -11,6 +11,8 @@
     <string name="hello_second_fragment">Hello second fragment. Arg: %1$s</string>
 
     <string name="global_action_power_off">Power off</string>
+    <string name="global_action_power_off_summary">Your phone will shutdown.</string>
     <string name="global_action_airplane">Airplane mode</string>
     <string name="global_action_reboot">Reboot</string>
+    <string name="global_action_reboot_summary">Your phone will reboot.</string>
 </resources>
