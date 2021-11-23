@@ -5,8 +5,6 @@ import android.animation.ObjectAnimator;
 import android.app.Dialog;
 import android.content.Context;
 import android.graphics.drawable.Drawable;
-import android.os.Vibrator;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -23,55 +21,22 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-public class GlobalActionDialog extends Dialog implements View.OnClickListener {
+public class GlobalActionDialog extends Dialog {
 
     private static final String TAG = "GlobalActionDialog";
-
-    private static final int ANIMATION_DELAY = 300;
-
-    private static final int STATUS_INIT = 1;
-    private static final int STATUS_CONFIRM = 2;
-    private static final int STATUS_TO_INIT = 3;
-    private static final int STATUS_TO_CONFIRM = 4;
-
-    private int mCurrentStatus = STATUS_INIT;
 
     private ViewGroup mInitPage;
 
     private ViewGroup mConfirmPage;
-
-    private TextView mConfirmTitle;
-    private TextView mConfirmSubTitle;
-
-    private String mConfirmLabel;
-    private String mConfirmSummary;
-
     final Animator.AnimatorListener animatorListener = new Animator.AnimatorListener() {
         @Override
         public void onAnimationStart(Animator animation, boolean isReverse) {
-            if (mCurrentStatus == STATUS_TO_INIT) {
-                mInitPage.setVisibility(View.VISIBLE);
-            } else if (mCurrentStatus == STATUS_TO_CONFIRM) {
-                mConfirmTitle.setText(mConfirmLabel);
-                mConfirmSubTitle.setText(mConfirmSummary);
-                mConfirmPage.setVisibility(View.VISIBLE);
-                mConfirmPage.setAlpha(1);
-            } else if (mCurrentStatus == STATUS_INIT) {
-            } else if (mCurrentStatus == STATUS_CONFIRM) {
-            }
         }
 
         @Override
         public void onAnimationEnd(Animator animation, boolean isReverse) {
-            if (mCurrentStatus == STATUS_TO_CONFIRM) {
-                mCurrentStatus = STATUS_CONFIRM;
-                switchConfirm(true);
-            } else if (mCurrentStatus == STATUS_TO_INIT) {
-                mCurrentStatus = STATUS_INIT;
-                switchConfirm(false);
-            } else if (mCurrentStatus == STATUS_INIT) {
-            } else if (mCurrentStatus == STATUS_CONFIRM) {
-            }
+            mInitPage.setVisibility(View.GONE);
+            mConfirmPage.setVisibility(View.VISIBLE);
         }
 
         @Override
@@ -111,6 +76,7 @@ public class GlobalActionDialog extends Dialog implements View.OnClickListener {
         window.getAttributes().systemUiVisibility |= View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
                 | View.SYSTEM_UI_FLAG_LAYOUT_STABLE
                 | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION;
+        //window.clearFlags(WindowManager.LayoutParams.FLAG_DIM_BEHIND);
         window.addFlags(
                 WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN
                         | WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL
@@ -137,6 +103,7 @@ public class GlobalActionDialog extends Dialog implements View.OnClickListener {
         mActions.add(new AirplaneAction(context));
         mActions.add(new RebootAction(context));
         mActions.add(new SoundAction(context));
+        //fadeIn.addListener(animatorListener);
     }
 
     private void initView(Context context) {
@@ -149,64 +116,37 @@ public class GlobalActionDialog extends Dialog implements View.OnClickListener {
         mActionList.setAdapter(mAdapter);
         mActionList.setLayoutManager(new LinearLayoutManager(context,
                 RecyclerView.VERTICAL, false));
-
-        mConfirmTitle = mConfirmPage.findViewById(R.id.title);
-        mConfirmSubTitle = mConfirmPage.findViewById(R.id.sub_title);
-
-        mConfirmPage.findViewById(R.id.negative).setOnClickListener(this);
-        mConfirmPage.findViewById(R.id.positive).setOnClickListener(this);
     }
 
     private void showConfirm(boolean animate) {
         if (animate) {
             ObjectAnimator fadeOut = ObjectAnimator.ofFloat(mInitPage, "alpha", 1, 0)
-                    .setDuration(ANIMATION_DELAY);
-            mCurrentStatus = STATUS_TO_CONFIRM;
+                    .setDuration(500);
             fadeOut.addListener(animatorListener);
+            mConfirmPage.setVisibility(View.VISIBLE);
             fadeOut.start();
         } else {
-            mCurrentStatus = STATUS_CONFIRM;
-            switchConfirm(true);
+            mInitPage.setVisibility(View.GONE);
+            mConfirmPage.setVisibility(View.VISIBLE);
         }
-    }
-
-    private void showInit(boolean animate) {
-        if (animate) {
-            mCurrentStatus = STATUS_TO_INIT;
-            ObjectAnimator fadeOut = ObjectAnimator
-                    .ofFloat(mConfirmPage, "alpha", 1, 0)
-                    .setDuration(ANIMATION_DELAY);
-            ObjectAnimator fadeIn = ObjectAnimator
-                    .ofFloat(mInitPage, "alpha", 0, 1)
-                    .setDuration(ANIMATION_DELAY);
-            fadeOut.addListener(animatorListener);
-            fadeIn.start();
-            fadeOut.start();
-        } else {
-            mCurrentStatus = STATUS_INIT;
-            switchConfirm(false);
-        }
-    }
-
-    private void switchConfirm(boolean showConfirm) {
-        mInitPage.setVisibility(showConfirm ? View.GONE : View.VISIBLE);
-        mConfirmPage.setVisibility(!showConfirm ? View.GONE : View.VISIBLE);
-        (showConfirm ? mConfirmPage : mInitPage).setAlpha(1);
     }
 
     @Override
     public void onBackPressed() {
-        if (mCurrentStatus == STATUS_CONFIRM) {
-            showInit(true);
+        super.onBackPressed();
+        /*if (mConfirmPage.getVisibility() == View.VISIBLE
+                && mInitPage.getVisibility() == View.GONE) {
+            ObjectAnimator fadeOut = ObjectAnimator
+                    .ofFloat(mConfirmPage, "alpha", 1, 0)
+                    .setDuration(500);
+            ObjectAnimator fadeIn = ObjectAnimator
+                    .ofFloat(mInitPage, "alpha", 0, 1)
+                    .setDuration(500);
+            fadeIn.start();
+            fadeOut.start();
         } else {
             super.onBackPressed();
-        }
-    }
-
-    @Override
-    public void onClick(View view) {
-        Log.i(TAG, "onClick: " + (view.getId() == R.id.positive ? "positive" : "negative"));
-        dismiss();
+        }*/
     }
 
     private interface Action {
@@ -214,7 +154,7 @@ public class GlobalActionDialog extends Dialog implements View.OnClickListener {
 
         Drawable getIcon();
 
-        void onPress();
+        void onPress(View v);
 
         boolean showDuringKeyguard();
 
@@ -255,94 +195,23 @@ public class GlobalActionDialog extends Dialog implements View.OnClickListener {
         }
     }
 
-    private static abstract class ToggleAction implements Action {
-
-        protected final Drawable mEnabledIcon;
-        protected final CharSequence mEnabledMessage;
-        protected final Drawable mDisabledIcon;
-        protected final CharSequence mDisabledMessage;
-        protected State mState = State.Off;
-        protected ToggleAction(Context context, int enabledIconResId, int enabledMessageResId,
-                               int disabledIconResId, int disabledMessageResId) {
-            this(context.getResources().getDrawable(enabledIconResId),
-                    context.getResources().getString(enabledMessageResId),
-                    context.getResources().getDrawable(disabledIconResId),
-                    context.getResources().getString(disabledMessageResId));
-        }
-
-        protected ToggleAction(Drawable enabledIcon, String enabledMessage,
-                               Drawable disabledIcon, String disabledMessage) {
-            mEnabledIcon = enabledIcon;
-            mEnabledMessage = enabledMessage;
-            mDisabledIcon = disabledIcon;
-            mDisabledMessage = disabledMessage;
-        }
-
-        @Override
-        public final void onPress() {
-            if (mState.inTransition()) {
-                Log.w(TAG, "shouldn't be able to toggle when in transition");
-                return;
-            }
-            final boolean nowOn = !(mState == State.On);
-            onToggle(nowOn);
-            changeStateFromPress(nowOn);
-        }
-
-        /**
-         * Implementations may override this if their state can be in on of the intermediate
-         * states until some notification is received (e.g airplane mode is 'turning off' until
-         * we know the wireless connections are back online
-         *
-         * @param buttonOn Whether the button was turned on or off
-         */
-        protected void changeStateFromPress(boolean buttonOn) {
-            mState = buttonOn ? State.On : State.Off;
-        }
-
-        abstract void onToggle(boolean on);
-
-        public void updateState(State state) {
-            mState = state;
-        }
-
-        enum State {
-            Off(false),
-            TurningOn(true),
-            TurningOff(true),
-            On(false);
-
-            private final boolean inTransition;
-
-            State(boolean intermediate) {
-                inTransition = intermediate;
-            }
-
-            public boolean inTransition() {
-                return inTransition;
-            }
-        }
-    }
-
     class ActionListAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
 
-        final int TYPE_MULTISTAGE = 0;
+        final int TYPE_NORMAL = 0;
 
         final int TYPE_SOUND = 1;
-
-        final int TYPE_DISABLE = 2;
 
         @NonNull
         @Override
         public RecyclerView.ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-            if (viewType == TYPE_MULTISTAGE) {
+            if (viewType == TYPE_NORMAL) {
                 return new ActionItemHolder(LayoutInflater.from(getContext())
                         .inflate(R.layout.item_normal_view, parent, false));
             } else if (viewType == TYPE_SOUND) {
                 return new ActionSoundHolder(LayoutInflater.from(getContext())
                         .inflate(R.layout.item_sound_view, parent, false));
             }
-            return new EmptyHolder(new View(getContext()));
+            return null;
         }
 
         @Override
@@ -351,41 +220,25 @@ public class GlobalActionDialog extends Dialog implements View.OnClickListener {
                 return;
             }
             Action action = mActions.get(position);
-            int type = getItemViewType(position);
-            if (type == TYPE_MULTISTAGE) {
+            if (getItemViewType(position) == TYPE_NORMAL) {
                 ActionItemHolder actionHolder = (ActionItemHolder) holder;
                 actionHolder.icon.setImageDrawable(action.getIcon());
                 actionHolder.message.setText(action.getLabel());
-                actionHolder.itemView.setOnClickListener(v -> action.onPress());
-            } else if (type == TYPE_SOUND) {
-                SoundAction soundAction = (SoundAction) action;
+                actionHolder.itemView.setOnClickListener(v -> action.onPress(v));
+            } else if (getItemViewType(position) == TYPE_SOUND) {
                 ActionSoundHolder soundHolder = (ActionSoundHolder) holder;
-                switchSoundView(soundHolder, soundAction.getSoundMode());
                 View.OnClickListener listener = v -> {
-                    int sound = v == soundHolder.mute ? SoundAction.SOUND_MUTE :
-                            v == soundHolder.vibrate ? SoundAction.SOUND_VIBRATE : SoundAction.SOUND_RING;
-                    switchSoundView(soundHolder, sound);
-                    soundAction.setSoundMode(sound);
+                    List<ViewGroup> inactive = new ArrayList<>(
+                            Arrays.asList(soundHolder.mute, soundHolder.vibrate, soundHolder.ring));
+                    inactive.remove(v);
+                    ((ViewGroup) v).getChildAt(1).setVisibility(View.VISIBLE);
+                    for (ViewGroup group : inactive) {
+                        group.getChildAt(1).setVisibility(View.INVISIBLE);
+                    }
                 };
                 soundHolder.mute.setOnClickListener(listener);
+                soundHolder.vibrate.setOnClickListener(listener);
                 soundHolder.ring.setOnClickListener(listener);
-                if (!soundAction.hasVibrator()) {
-                    soundHolder.vibrate.setVisibility(View.GONE);
-                } else {
-                    soundHolder.vibrate.setOnClickListener(listener);
-                }
-            }
-        }
-
-        private void switchSoundView(ActionSoundHolder soundHolder, int sound) {
-            List<ViewGroup> inactive = new ArrayList<>(
-                    Arrays.asList(soundHolder.mute, soundHolder.vibrate, soundHolder.ring));
-            View active = sound == SoundAction.SOUND_MUTE ? soundHolder.mute :
-                    sound == SoundAction.SOUND_VIBRATE ? soundHolder.vibrate : soundHolder.ring;
-            inactive.remove(active);
-            ((ViewGroup) active).getChildAt(1).setVisibility(View.VISIBLE);
-            for (ViewGroup group : inactive) {
-                group.getChildAt(1).setVisibility(View.INVISIBLE);
             }
         }
 
@@ -400,8 +253,8 @@ public class GlobalActionDialog extends Dialog implements View.OnClickListener {
         }
 
         class ActionItemHolder extends RecyclerView.ViewHolder {
-            private final ImageView icon;
-            private final TextView message;
+            private ImageView icon;
+            private TextView message;
 
             public ActionItemHolder(@NonNull View itemView) {
                 super(itemView);
@@ -411,21 +264,15 @@ public class GlobalActionDialog extends Dialog implements View.OnClickListener {
         }
 
         class ActionSoundHolder extends RecyclerView.ViewHolder {
-            private final ViewGroup mute;
-            private final ViewGroup vibrate;
-            private final ViewGroup ring;
+            private ViewGroup mute;
+            private ViewGroup vibrate;
+            private ViewGroup ring;
 
             public ActionSoundHolder(@NonNull View itemView) {
                 super(itemView);
                 mute = itemView.findViewById(R.id.sound_mute);
                 vibrate = itemView.findViewById(R.id.sound_vibrate);
                 ring = itemView.findViewById(R.id.sound_ring);
-            }
-        }
-
-        class EmptyHolder extends RecyclerView.ViewHolder {
-            public EmptyHolder(@NonNull View itemView) {
-                super(itemView);
             }
         }
     }
@@ -437,9 +284,7 @@ public class GlobalActionDialog extends Dialog implements View.OnClickListener {
         }
 
         @Override
-        public void onPress() {
-            mConfirmLabel = getContext().getString(R.string.global_action_power_off);
-            mConfirmSummary = getContext().getString(R.string.global_action_power_off_summary);
+        public void onPress(View v) {
             showConfirm(true);
         }
 
@@ -455,53 +300,19 @@ public class GlobalActionDialog extends Dialog implements View.OnClickListener {
 
         @Override
         public int getType() {
-            return !isEnabled() ? mAdapter.TYPE_DISABLE : mAdapter.TYPE_MULTISTAGE;
+            return mAdapter.TYPE_NORMAL;
         }
     }
 
-    private class AirplaneAction extends ToggleAction {
+    private class AirplaneAction extends SinglePressAction {
 
         protected AirplaneAction(Context context) {
-            super(context, R.drawable.ic_action_airplane, R.string.global_action_airplane
-                    , R.drawable.ic_action_airplane_disabled, R.string.global_action_airplane);
-            // default state
-            mState = State.Off;
+            super(context, R.drawable.ic_action_airplane, R.string.global_action_airplane);
         }
 
         @Override
-        public CharSequence getLabel() {
-            if (mState == State.On || mState == State.TurningOff) {
-                return mEnabledMessage;
-            } else {
-                return mDisabledMessage;
-            }
-        }
-
-        @Override
-        public Drawable getIcon() {
-            if (mState == State.On || mState == State.TurningOff) {
-                return mEnabledIcon;
-            } else {
-                return mDisabledIcon;
-            }
-        }
-
-        @Override
-        void onToggle(boolean on) {
-            Log.i(TAG, "onToggle on: " + on);
-        }
-
-        @Override
-        protected void changeStateFromPress(boolean buttonOn) {
-            Log.i(TAG, "changeStateFromPress buttonOn: " + buttonOn);
-            super.changeStateFromPress(buttonOn);
-            mAdapter.notifyDataSetChanged();
-        }
-
-        @Override
-        public void updateState(State state) {
-            Log.i(TAG, "updateState state: " + state);
-            super.updateState(state);
+        public void onPress(View v) {
+            showConfirm(true);
         }
 
         @Override
@@ -516,7 +327,7 @@ public class GlobalActionDialog extends Dialog implements View.OnClickListener {
 
         @Override
         public int getType() {
-            return !isEnabled() ? mAdapter.TYPE_DISABLE : mAdapter.TYPE_MULTISTAGE;
+            return mAdapter.TYPE_NORMAL;
         }
     }
 
@@ -527,9 +338,7 @@ public class GlobalActionDialog extends Dialog implements View.OnClickListener {
         }
 
         @Override
-        public void onPress() {
-            mConfirmLabel = getContext().getString(R.string.global_action_reboot);
-            mConfirmSummary = getContext().getString(R.string.global_action_reboot_summary);
+        public void onPress(View v) {
             showConfirm(true);
         }
 
@@ -540,42 +349,23 @@ public class GlobalActionDialog extends Dialog implements View.OnClickListener {
 
         @Override
         public boolean isEnabled() {
-            return true;
+            return false;
         }
 
         @Override
         public int getType() {
-            return !isEnabled() ? mAdapter.TYPE_DISABLE : mAdapter.TYPE_MULTISTAGE;
+            return mAdapter.TYPE_NORMAL;
         }
     }
 
     private class SoundAction extends SinglePressAction {
 
-        final static int SOUND_MUTE = 1;
-        final static int SOUND_VIBRATE = 2;
-        final static int SOUND_RING = 3;
-
-        private int mSoundMode;
-
-        private final Context mContext;
-
         protected SoundAction(Context context) {
             super(null, null);
-            mContext = context;
-            // default mode
-            mSoundMode = SOUND_RING;
-        }
-
-        public int getSoundMode() {
-            return mSoundMode;
-        }
-
-        public void setSoundMode(int action) {
-            mSoundMode = action;
         }
 
         @Override
-        public void onPress() {
+        public void onPress(View v) {
 
         }
 
@@ -591,12 +381,7 @@ public class GlobalActionDialog extends Dialog implements View.OnClickListener {
 
         @Override
         public int getType() {
-            return !isEnabled() ? mAdapter.TYPE_DISABLE : mAdapter.TYPE_SOUND;
-        }
-
-        public boolean hasVibrator() {
-            Vibrator vibrator = (Vibrator) mContext.getSystemService(Context.VIBRATOR_SERVICE);
-            return vibrator != null && vibrator.hasVibrator();
+            return mAdapter.TYPE_SOUND;
         }
     }
 }
